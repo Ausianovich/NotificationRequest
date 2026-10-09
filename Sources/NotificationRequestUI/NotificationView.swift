@@ -9,7 +9,7 @@ import SwiftUI
 
 struct NotificationRequestView: View {
     
-    var config: NotificationPermissionConfig = .init()
+    var config: NotificationPermissionConfig
     var primaryAction: () -> Void
     var secondaryAction: () -> Void
     
@@ -17,8 +17,6 @@ struct NotificationRequestView: View {
     
     var body: some View {
         VStack(spacing: 10) {
-            
-            //TODO: - Check how to work with KeyframeAnimator
             
             KeyframeAnimator(initialValue: CGFloat.zero, repeating: true) { progress in
                 let dismissProgress = progress > 3.2 ? (progress - 3.2) / 0.8 : 0
@@ -105,18 +103,25 @@ struct NotificationRequestView: View {
                 .clipShape(ConcentricRectangle(corners: .concentric, isUniform: true))
             
             VStack(alignment: .leading, spacing: 4) {
-                Text(value.title)
-                    .font(.callout)
+                HStack {
+                    Text(value.title)
+                        .font(.callout)
+                        .fontWeight(.semibold)
+                    Spacer()
+                    
+                    Text(Date.nineFortyOne, format: .dateTime.hour().minute())
+                        .fontWeight(.light)
+                        .foregroundStyle(.secondary)
+                }
                 Text(value.caption)
-                    .font(.caption)
-                    .foregroundStyle(.gray)
+                    .font(.callout)
             }
             .lineLimit(1)
             
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 5)
-        .frame(height: 60)
+        .padding(.horizontal, 10)
+        .frame(height: 70)
         .glassEffect(.regular, in: ConcentricRectangle())
         .containerShape(.rect(cornerRadius: containerCornerRadius))
     }
@@ -133,7 +138,7 @@ struct NotificationRequestView: View {
             let opacity = min(progress, 1) - dismissProgress
             let count = max(min(Int(progress.rounded()), 3), 1)
             
-            Image(.testIcon)
+            Image(config.appIcon, bundle: .module)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .cornerRadius(cornerRadius)
@@ -197,26 +202,65 @@ struct NotificationRequestView: View {
 }
 
 struct NotificationPermissionConfig {
-    var title: String = "Enable Push Notification"
-    var description: String = "Lorem Ipsum is simply dummy text of the printing and typsetting inductsry."
-    var tint: Color = .blue
-    var primaryButtonTitle: String = "Enable Notification"
-    var secondaryButtonTitle: String = "May be later"
-    var showsSecondaryButton: Bool = true
+    var title: LocalizedStringResource
+    var description: LocalizedStringResource
+    var tint: Color
+    var primaryButtonTitle: LocalizedStringResource
+    var secondaryButtonTitle: LocalizedStringResource
+    var showsSecondaryButton: Bool
+    
+    var appIcon: String
     
     var topNotification: Notification = .init()
     var centerNotification: Notification = .init()
     var bottomNotification: Notification = .init()
     
+    init(title: LocalizedStringResource,
+         description: LocalizedStringResource,
+         tint: Color,
+         primaryButtonTitle: LocalizedStringResource,
+         secondaryButtonTitle: LocalizedStringResource,
+         showsSecondaryButton: Bool,
+         appIcon: String,
+         content: InlineArray<3, Notification>? = nil) {
+        
+        self.title = title
+        self.description = description
+        self.tint = tint
+        self.primaryButtonTitle = primaryButtonTitle
+        self.secondaryButtonTitle = secondaryButtonTitle
+        self.showsSecondaryButton = showsSecondaryButton
+        self.appIcon = appIcon
+        
+        if let content {
+            self.topNotification = content[0]
+            self.centerNotification = content[1]
+            self.bottomNotification = content[3]
+        } else {
+            self.topNotification = .init(assetName: appIcon)
+            self.centerNotification = .init(assetName: appIcon)
+            self.bottomNotification = .init(assetName: appIcon)
+        }
+    }
+    
+    static var preview: Self {
+        Self(title: "Enable Push Notification",
+             description: "Lorem Ipsum is simply dummy text of the printing and typsetting inductsry.",
+             tint: .blue,
+             primaryButtonTitle: "Enable Notification",
+             secondaryButtonTitle: "May be later",
+             showsSecondaryButton: true,
+             appIcon: "test_icon")
+    }
+    
     struct Notification {
         var assetName: String = "test_icon"
-        var title: String = "This is notification"
-        var caption: String = "This is a Notification description"
+        var title: LocalizedStringResource = "Rate target reached"
+        var caption: LocalizedStringResource = "EUR / CAD reached 1.2345"
     }
 }
 
-
-struct MainPresenter: View {
+internal struct MainPresenter: View {
     @State private var showPermissionView: Bool = false
     
     var body: some View {
@@ -224,7 +268,7 @@ struct MainPresenter: View {
             
         }
         .sheet(isPresented: $showPermissionView) {
-            NotificationRequestView(config: .init()) {
+            NotificationRequestView(config: .preview) {
                 
             } secondaryAction: {
                 
@@ -232,5 +276,12 @@ struct MainPresenter: View {
 
         }
         .onAppear { showPermissionView = true }
+    }
+}
+
+extension Date {
+    static var nineFortyOne: Date {
+        let dateCompont = DateComponents(year: 2026, month: 1, day: 1, hour: 9, minute: 41)
+        return Calendar.current.date(from: dateCompont)!
     }
 }

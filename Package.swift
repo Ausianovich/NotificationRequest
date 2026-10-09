@@ -5,6 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "NotificationRequest",
+    defaultLocalization: "en",
     platforms: [.iOS(.v26), .macOS(.v26)],
     products: [
         .library(
@@ -19,6 +20,9 @@ let package = Package(
     targets: [
         .target(
             name: "NotificationRequestUI",
+            resources: [
+                .process("Resources")
+            ],
             swiftSettings: [
                 .enableUpcomingFeature("ApproachableConcurrency"),
             ],

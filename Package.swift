@@ -17,6 +17,10 @@ let package = Package(
             targets: ["NotificationRequest"]
         ),
     ],
+    dependencies: [
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "1.26.2"),
+        .package(url: "https://github.com/pointfreeco/swift-dependencies.git", from: "1.17.1")
+    ],
     targets: [
         .target(
             name: "NotificationRequestUI",
@@ -29,6 +33,10 @@ let package = Package(
         ),
         .target(
             name: "NotificationRequest",
+            dependencies: [
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+                .product(name: "Dependencies", package: "swift-dependencies"),
+            ],
             swiftSettings: [
                 .enableUpcomingFeature("ApproachableConcurrency"),
             ],

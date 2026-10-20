@@ -31,7 +31,7 @@ let package = Package(
                 "NotificationRequest"
             ],
             resources: [
-                .process("Resources")
+                .process("PreviewSupport/Resources")
             ],
             swiftSettings: [
                 .enableUpcomingFeature("ApproachableConcurrency"),

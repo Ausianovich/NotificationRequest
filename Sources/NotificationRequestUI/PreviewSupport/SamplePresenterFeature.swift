@@ -13,7 +13,7 @@ import ComposableArchitecture
 import NotificationRequest
 
 @Reducer
-struct MainPresenterFeature {
+struct SamplePresenterFeature {
     @ObservableState
     struct State: Equatable {
         @Presents var notificationRequest: NotificationRequestFeature.State?
@@ -45,9 +45,9 @@ struct MainPresenterFeature {
 }
 
 
-@ViewAction(for: MainPresenterFeature.self)
-struct MainPresenter: View {
-    @Bindable var store: StoreOf<MainPresenterFeature> = .init(initialState: MainPresenterFeature.State(), reducer: { MainPresenterFeature() })
+@ViewAction(for: SamplePresenterFeature.self)
+struct SamplePresenter: View {
+    @Bindable var store: StoreOf<SamplePresenterFeature> = .init(initialState: SamplePresenterFeature.State(), reducer: { SamplePresenterFeature() })
     
     var body: some View {
         NavigationStack {
@@ -64,7 +64,7 @@ struct MainPresenter: View {
 }
 
 #Preview {
-    MainPresenter()
+    SamplePresenter()
 }
 
 #endif

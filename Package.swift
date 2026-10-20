@@ -10,7 +10,7 @@ let package = Package(
     products: [
         .library(
             name: "NotificationRequestUI",
-            targets: ["NotificationRequestUI"]
+            targets: ["NotificationRequestUI", "NotificationRequest"]
         ),
         .library(
             name: "NotificationRequest",
@@ -24,6 +24,12 @@ let package = Package(
     targets: [
         .target(
             name: "NotificationRequestUI",
+            dependencies: [
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+                .product(name: "Dependencies", package: "swift-dependencies"),
+                .product(name: "DependenciesMacros", package: "swift-dependencies"),
+                "NotificationRequest"
+            ],
             resources: [
                 .process("Resources")
             ],

@@ -6,12 +6,15 @@
 //
 
 import SwiftUI
+import ComposableArchitecture
+import NotificationRequest
 
+@ViewAction(for: NotificationRequestFeature.self)
 struct NotificationRequestView: View {
     
-    var config: NotificationPermissionConfig
-    var primaryAction: () -> Void
-    var secondaryAction: () -> Void
+    @Bindable var store: StoreOf<NotificationRequestFeature>
+
+    var config: NotificationPermissionConfig = .preview
     
     @State private var containerCornerRadius: CGFloat = 20
     
@@ -178,7 +181,9 @@ struct NotificationRequestView: View {
                 .fixedSize(horizontal: false, vertical: true) // TODO: check how it works
                 .padding(.horizontal, 15)
             
-            Button(action: primaryAction) {
+            Button(action: {
+                send(.tapEnableNotifications)
+            }) {
                 Text(config.primaryButtonTitle)
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)
@@ -189,7 +194,9 @@ struct NotificationRequestView: View {
             .padding(.horizontal, 15)
             
             if config.showsSecondaryButton {
-                Button(config.secondaryButtonTitle, action: secondaryAction)
+                Button(config.secondaryButtonTitle, action: {
+                    send(.tapMaybeLater)
+                })
             }
         }
         .tint(config.tint)
@@ -260,22 +267,23 @@ struct NotificationPermissionConfig {
     }
 }
 
+@ViewAction(for: MainPresenterFeature.self)
 internal struct MainPresenter: View {
-    @State private var showPermissionView: Bool = false
+    @Bindable var store: StoreOf<MainPresenterFeature> = .init(initialState: MainPresenterFeature.State(), reducer: { MainPresenterFeature() })
     
     var body: some View {
         NavigationStack {
-            
-        }
-        .sheet(isPresented: $showPermissionView) {
-            NotificationRequestView(config: .preview) {
-                
-            } secondaryAction: {
-                
+            List {
+                Button {
+                    send(.tapPresentNotificationRequest)
+                } label: {
+                    Text("Present request")
+                }
             }
-
         }
-        .onAppear { showPermissionView = true }
+        .sheet(item: $store.scope(\.notificationRequest, action: \.notificationRequest)) { store in
+            NotificationRequestView(store: store)
+        }
     }
 }
 

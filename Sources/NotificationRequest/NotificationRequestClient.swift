@@ -7,7 +7,7 @@
 
 import Dependencies
 import DependenciesMacros
-import NotificationCenter
+import UserNotifications
 
 @DependencyClient
 public struct NotificationRequestClient: TestDependencyKey, Sendable {

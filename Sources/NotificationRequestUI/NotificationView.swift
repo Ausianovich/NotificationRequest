@@ -13,10 +13,14 @@ import NotificationRequest
 struct NotificationRequestView: View {
     
     @Bindable var store: StoreOf<NotificationRequestFeature>
-
-    var config: NotificationPermissionConfig = .preview
-    
     @State private var containerCornerRadius: CGFloat = 20
+
+    var style: NotificationRequestStyle = .default
+    
+    public init(store: StoreOf<NotificationRequestFeature>, style: NotificationRequestStyle = .default) {
+        self.store = store
+        self.style = style
+    }
     
     var body: some View {
         VStack(spacing: 10) {
@@ -76,7 +80,7 @@ struct NotificationRequestView: View {
     private func NotificationStack(_ progress: CGFloat) -> some View {
         ZStack {
             ForEach(0...3, id: \.self) { index in
-                let notification = index == 0 ? config.bottomNotification : index == 1 ? config.centerNotification : config.topNotification
+                let notification = index == 0 ? store.configuration.bottomNotification : index == 1 ? store.configuration.centerNotification : store.configuration.topNotification
                 
                 let indexProgress = progress - CGFloat(index)
                 let progress = max(min(indexProgress, 1), 0)
@@ -97,9 +101,9 @@ struct NotificationRequestView: View {
     }
     
     @ContentBuilder
-    private func NotificationView(_ value: NotificationPermissionConfig.Notification) -> some View {
+    private func NotificationView(_ value: NotificationRequestFeature.Configuration.NotificationContent) -> some View {
         HStack(spacing: 8) {
-            Image(value.assetName, bundle: .module)
+            style.appIcon
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: 50, height: 50)
@@ -141,7 +145,7 @@ struct NotificationRequestView: View {
             let opacity = min(progress, 1) - dismissProgress
             let count = max(min(Int(progress.rounded()), 3), 1)
             
-            Image(config.appIcon, bundle: .module)
+            style.appIcon
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .cornerRadius(cornerRadius)
@@ -170,11 +174,11 @@ struct NotificationRequestView: View {
     @ContentBuilder
     private func Contents() -> some View {
         VStack(spacing: 10) {
-            Text(config.title)
+            Text(store.configuration.title)
                 .font(.title3.bold())
                 .lineLimit(1)
             
-            Text(config.description)
+            Text(store.configuration.description)
                 .multilineTextAlignment(.center)
                 .font(.callout)
                 .lineLimit(2)
@@ -184,7 +188,7 @@ struct NotificationRequestView: View {
             Button(action: {
                 send(.tapEnableNotifications)
             }) {
-                Text(config.primaryButtonTitle)
+                Text(store.configuration.primaryButtonTitle)
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
@@ -193,103 +197,12 @@ struct NotificationRequestView: View {
             .padding(.top, 15)
             .padding(.horizontal, 15)
             
-            if config.showsSecondaryButton {
-                Button(config.secondaryButtonTitle, action: {
+            if store.configuration.showsSecondaryButton {
+                Button(store.configuration.secondaryButtonTitle, action: {
                     send(.tapMaybeLater)
                 })
             }
         }
-        .tint(config.tint)
-    }
-    
-}
-
-#Preview {
-    MainPresenter()
-}
-
-struct NotificationPermissionConfig {
-    var title: LocalizedStringResource
-    var description: LocalizedStringResource
-    var tint: Color
-    var primaryButtonTitle: LocalizedStringResource
-    var secondaryButtonTitle: LocalizedStringResource
-    var showsSecondaryButton: Bool
-    
-    var appIcon: String
-    
-    var topNotification: Notification = .init()
-    var centerNotification: Notification = .init()
-    var bottomNotification: Notification = .init()
-    
-    init(title: LocalizedStringResource,
-         description: LocalizedStringResource,
-         tint: Color,
-         primaryButtonTitle: LocalizedStringResource,
-         secondaryButtonTitle: LocalizedStringResource,
-         showsSecondaryButton: Bool,
-         appIcon: String,
-         content: InlineArray<3, Notification>? = nil) {
-        
-        self.title = title
-        self.description = description
-        self.tint = tint
-        self.primaryButtonTitle = primaryButtonTitle
-        self.secondaryButtonTitle = secondaryButtonTitle
-        self.showsSecondaryButton = showsSecondaryButton
-        self.appIcon = appIcon
-        
-        if let content {
-            self.topNotification = content[0]
-            self.centerNotification = content[1]
-            self.bottomNotification = content[3]
-        } else {
-            self.topNotification = .init(assetName: appIcon)
-            self.centerNotification = .init(assetName: appIcon)
-            self.bottomNotification = .init(assetName: appIcon)
-        }
-    }
-    
-    static var preview: Self {
-        Self(title: "Enable Push Notification",
-             description: "Lorem Ipsum is simply dummy text of the printing and typsetting inductsry.",
-             tint: .blue,
-             primaryButtonTitle: "Enable Notification",
-             secondaryButtonTitle: "May be later",
-             showsSecondaryButton: true,
-             appIcon: "test_icon")
-    }
-    
-    struct Notification {
-        var assetName: String = "test_icon"
-        var title: LocalizedStringResource = "Rate target reached"
-        var caption: LocalizedStringResource = "EUR / CAD reached 1.2345"
-    }
-}
-
-@ViewAction(for: MainPresenterFeature.self)
-internal struct MainPresenter: View {
-    @Bindable var store: StoreOf<MainPresenterFeature> = .init(initialState: MainPresenterFeature.State(), reducer: { MainPresenterFeature() })
-    
-    var body: some View {
-        NavigationStack {
-            List {
-                Button {
-                    send(.tapPresentNotificationRequest)
-                } label: {
-                    Text("Present request")
-                }
-            }
-        }
-        .sheet(item: $store.scope(\.notificationRequest, action: \.notificationRequest)) { store in
-            NotificationRequestView(store: store)
-        }
-    }
-}
-
-extension Date {
-    static var nineFortyOne: Date {
-        let dateCompont = DateComponents(year: 2026, month: 1, day: 1, hour: 9, minute: 41)
-        return Calendar.current.date(from: dateCompont)!
+        .tint(style.tint)
     }
 }
